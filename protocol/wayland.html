@@ -1,0 +1,2761 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<link href="wayland-protocol.css" rel="stylesheet" type="text/css">
+<title>Wayland</title>
+</head>
+<body>
+<h1><img src="wayland.png" alt="Wayland logo"></h1>
+<h1>Wayland Protocol Specification</h1>
+<div><pre class="copyright">
+    Copyright © 2008-2011 Kristian Høgsberg
+    Copyright © 2010-2011 Intel Corporation
+
+    Permission to use, copy, modify, distribute, and sell this
+    software and its documentation for any purpose is hereby granted
+    without fee, provided that the above copyright notice appear in
+    all copies and that both that copyright notice and this permission
+    notice appear in supporting documentation, and that the name of
+    the copyright holders not be used in advertising or publicity
+    pertaining to distribution of the software without specific,
+    written prior permission.  The copyright holders make no
+    representations about the suitability of this software for any
+    purpose.  It is provided "as is" without express or implied
+    warranty.
+
+    THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
+    SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+    FITNESS, IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+    AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+    ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+    THIS SOFTWARE.
+  </pre></div>
+<div class="toc">
+<h2>Table of Contents</h2>
+<ul>
+<li>
+<a href="#wayland-interface-wl_display"><span class="mono">wl_display</span> - core global object</a><div>
+	Requests:
+	<ul>
+<li><a href="#wl_display-request-bind"><span class="mono">bind</span> - bind an object to the display</a></li>
+<li><a href="#wl_display-request-sync"><span class="mono">sync</span> - asynchronous roundtrip</a></li>
+</ul>
+</div>
+<div>
+	Events:
+	<ul>
+<li><a href="#wl_display-event-error"><span class="mono">error</span> - fatal error event</a></li>
+<li><a href="#wl_display-event-global"><span class="mono">global</span> - announce global object</a></li>
+<li><a href="#wl_display-event-global_remove"><span class="mono">global_remove</span> - announce removal of global object</a></li>
+<li><a href="#wl_display-event-delete_id"><span class="mono">delete_id</span> - acknowledge object id deletion</a></li>
+</ul>
+</div>
+<div>
+	Enums:
+	<ul><li><a href="#wl_display-enum-error"><span class="mono">error</span> - global error values</a></li></ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_callback"><span class="mono">wl_callback</span></a><div>
+	Events:
+	<ul><li><a href="#wl_callback-event-done"><span class="mono">done</span></a></li></ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_compositor"><span class="mono">wl_compositor</span> - the compositor singleton</a><div>
+	Requests:
+	<ul>
+<li><a href="#wl_compositor-request-create_surface"><span class="mono">create_surface</span> - create new surface</a></li>
+<li><a href="#wl_compositor-request-create_region"><span class="mono">create_region</span> - create new region</a></li>
+</ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_shm_pool"><span class="mono">wl_shm_pool</span> - a shared memory pool</a><div>
+	Requests:
+	<ul>
+<li><a href="#wl_shm_pool-request-create_buffer"><span class="mono">create_buffer</span> - create wl_buffer from pool</a></li>
+<li><a href="#wl_shm_pool-request-destroy"><span class="mono">destroy</span> - destroy the pool</a></li>
+<li><a href="#wl_shm_pool-request-resize"><span class="mono">resize</span> - change the size of the pool mapping</a></li>
+</ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_shm"><span class="mono">wl_shm</span> - shared memory support</a><div>
+	Requests:
+	<ul><li><a href="#wl_shm-request-create_pool"><span class="mono">create_pool</span> - create a shm pool</a></li></ul>
+</div>
+<div>
+	Events:
+	<ul><li><a href="#wl_shm-event-format"><span class="mono">format</span></a></li></ul>
+</div>
+<div>
+	Enums:
+	<ul>
+<li><a href="#wl_shm-enum-error"><span class="mono">error</span></a></li>
+<li><a href="#wl_shm-enum-format"><span class="mono">format</span></a></li>
+</ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_buffer"><span class="mono">wl_buffer</span> - content for a wl_surface</a><div>
+	Requests:
+	<ul><li><a href="#wl_buffer-request-destroy"><span class="mono">destroy</span> - destroy a buffer</a></li></ul>
+</div>
+<div>
+	Events:
+	<ul><li><a href="#wl_buffer-event-release"><span class="mono">release</span> - compositor releases buffer</a></li></ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_data_offer"><span class="mono">wl_data_offer</span></a><div>
+	Requests:
+	<ul>
+<li><a href="#wl_data_offer-request-accept"><span class="mono">accept</span> - accept one of the offered mime-types</a></li>
+<li><a href="#wl_data_offer-request-receive"><span class="mono">receive</span></a></li>
+<li><a href="#wl_data_offer-request-destroy"><span class="mono">destroy</span></a></li>
+</ul>
+</div>
+<div>
+	Events:
+	<ul><li><a href="#wl_data_offer-event-offer"><span class="mono">offer</span> - advertise offered mime-type</a></li></ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_data_source"><span class="mono">wl_data_source</span></a><div>
+	Requests:
+	<ul>
+<li><a href="#wl_data_source-request-offer"><span class="mono">offer</span> - add an offered mime type</a></li>
+<li><a href="#wl_data_source-request-destroy"><span class="mono">destroy</span> - destroy the data source</a></li>
+</ul>
+</div>
+<div>
+	Events:
+	<ul>
+<li><a href="#wl_data_source-event-target"><span class="mono">target</span> - a target accepts an offered mime-type</a></li>
+<li><a href="#wl_data_source-event-send"><span class="mono">send</span> - send the data</a></li>
+<li><a href="#wl_data_source-event-cancelled"><span class="mono">cancelled</span> - selection was cancelled</a></li>
+</ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_data_device"><span class="mono">wl_data_device</span></a><div>
+	Requests:
+	<ul>
+<li><a href="#wl_data_device-request-start_drag"><span class="mono">start_drag</span> - start drag and drop operation</a></li>
+<li><a href="#wl_data_device-request-set_selection"><span class="mono">set_selection</span></a></li>
+</ul>
+</div>
+<div>
+	Events:
+	<ul>
+<li><a href="#wl_data_device-event-data_offer"><span class="mono">data_offer</span> - introduce a new wl_data_offer</a></li>
+<li><a href="#wl_data_device-event-enter"><span class="mono">enter</span></a></li>
+<li><a href="#wl_data_device-event-leave"><span class="mono">leave</span></a></li>
+<li><a href="#wl_data_device-event-motion"><span class="mono">motion</span></a></li>
+<li><a href="#wl_data_device-event-drop"><span class="mono">drop</span></a></li>
+<li><a href="#wl_data_device-event-selection"><span class="mono">selection</span> - advertise new selection</a></li>
+</ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_data_device_manager"><span class="mono">wl_data_device_manager</span></a><div>
+	Requests:
+	<ul>
+<li><a href="#wl_data_device_manager-request-create_data_source"><span class="mono">create_data_source</span></a></li>
+<li><a href="#wl_data_device_manager-request-get_data_device"><span class="mono">get_data_device</span></a></li>
+</ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_shell"><span class="mono">wl_shell</span></a><div>
+	Requests:
+	<ul><li><a href="#wl_shell-request-get_shell_surface"><span class="mono">get_shell_surface</span></a></li></ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_shell_surface"><span class="mono">wl_shell_surface</span> - desktop style meta data interface</a><div>
+	Requests:
+	<ul>
+<li><a href="#wl_shell_surface-request-pong"><span class="mono">pong</span> - respond to a ping event</a></li>
+<li><a href="#wl_shell_surface-request-move"><span class="mono">move</span></a></li>
+<li><a href="#wl_shell_surface-request-resize"><span class="mono">resize</span></a></li>
+<li><a href="#wl_shell_surface-request-set_toplevel"><span class="mono">set_toplevel</span> - make the surface a top level surface</a></li>
+<li><a href="#wl_shell_surface-request-set_transient"><span class="mono">set_transient</span> - make the surface a transient surface</a></li>
+<li><a href="#wl_shell_surface-request-set_fullscreen"><span class="mono">set_fullscreen</span> - make the surface a fullscreen surface</a></li>
+<li><a href="#wl_shell_surface-request-set_popup"><span class="mono">set_popup</span> - make the surface a popup surface</a></li>
+<li><a href="#wl_shell_surface-request-set_maximized"><span class="mono">set_maximized</span> - make the surface a maximized surface</a></li>
+<li><a href="#wl_shell_surface-request-set_title"><span class="mono">set_title</span> - set surface title</a></li>
+<li><a href="#wl_shell_surface-request-set_class"><span class="mono">set_class</span> - set surface class</a></li>
+</ul>
+</div>
+<div>
+	Events:
+	<ul>
+<li><a href="#wl_shell_surface-event-ping"><span class="mono">ping</span> - ping client</a></li>
+<li><a href="#wl_shell_surface-event-configure"><span class="mono">configure</span> - suggest resize</a></li>
+<li><a href="#wl_shell_surface-event-popup_done"><span class="mono">popup_done</span> - popup interaction is done</a></li>
+</ul>
+</div>
+<div>
+	Enums:
+	<ul>
+<li><a href="#wl_shell_surface-enum-resize"><span class="mono">resize</span></a></li>
+<li><a href="#wl_shell_surface-enum-transient"><span class="mono">transient</span></a></li>
+<li><a href="#wl_shell_surface-enum-fullscreen_method"><span class="mono">fullscreen_method</span> - different method to set the surface fullscreen</a></li>
+</ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_surface"><span class="mono">wl_surface</span> - an onscreen surface</a><div>
+	Requests:
+	<ul>
+<li><a href="#wl_surface-request-destroy"><span class="mono">destroy</span> - delete surface</a></li>
+<li><a href="#wl_surface-request-attach"><span class="mono">attach</span> - set the surface contents</a></li>
+<li><a href="#wl_surface-request-damage"><span class="mono">damage</span> - mark part of the surface damaged</a></li>
+<li><a href="#wl_surface-request-frame"><span class="mono">frame</span> - request repaint feedback</a></li>
+<li><a href="#wl_surface-request-set_opaque_region"><span class="mono">set_opaque_region</span> - set opaque region</a></li>
+<li><a href="#wl_surface-request-set_input_region"><span class="mono">set_input_region</span> - set input region</a></li>
+</ul>
+</div>
+<div>
+	Events:
+	<ul>
+<li><a href="#wl_surface-event-enter"><span class="mono">enter</span> - surface enters an output</a></li>
+<li><a href="#wl_surface-event-leave"><span class="mono">leave</span> - surface leaves an output</a></li>
+</ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_seat"><span class="mono">wl_seat</span> - seat</a><div>
+	Requests:
+	<ul>
+<li><a href="#wl_seat-request-get_pointer"><span class="mono">get_pointer</span> - return pointer object</a></li>
+<li><a href="#wl_seat-request-get_keyboard"><span class="mono">get_keyboard</span> - return pointer object</a></li>
+<li><a href="#wl_seat-request-get_touch"><span class="mono">get_touch</span> - return pointer object</a></li>
+</ul>
+</div>
+<div>
+	Events:
+	<ul><li><a href="#wl_seat-event-capabilities"><span class="mono">capabilities</span> - seat capabilities changed</a></li></ul>
+</div>
+<div>
+	Enums:
+	<ul><li><a href="#wl_seat-enum-capability"><span class="mono">capability</span> - seat capability bitmask</a></li></ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_pointer"><span class="mono">wl_pointer</span></a><div>
+	Requests:
+	<ul><li><a href="#wl_pointer-request-set_cursor"><span class="mono">set_cursor</span> - set the pointer surface</a></li></ul>
+</div>
+<div>
+	Events:
+	<ul>
+<li><a href="#wl_pointer-event-enter"><span class="mono">enter</span> - enter event</a></li>
+<li><a href="#wl_pointer-event-leave"><span class="mono">leave</span> - leave event</a></li>
+<li><a href="#wl_pointer-event-motion"><span class="mono">motion</span> - pointer motion event</a></li>
+<li><a href="#wl_pointer-event-button"><span class="mono">button</span> - pointer button event</a></li>
+<li><a href="#wl_pointer-event-axis"><span class="mono">axis</span> - axis event</a></li>
+</ul>
+</div>
+<div>
+	Enums:
+	<ul>
+<li><a href="#wl_pointer-enum-button_state"><span class="mono">button_state</span> - physical button state</a></li>
+<li><a href="#wl_pointer-enum-axis"><span class="mono">axis</span> - axis types</a></li>
+</ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_keyboard"><span class="mono">wl_keyboard</span> - keyboard input device</a><div>
+	Events:
+	<ul>
+<li><a href="#wl_keyboard-event-keymap"><span class="mono">keymap</span> - keyboard mapping</a></li>
+<li><a href="#wl_keyboard-event-enter"><span class="mono">enter</span></a></li>
+<li><a href="#wl_keyboard-event-leave"><span class="mono">leave</span></a></li>
+<li><a href="#wl_keyboard-event-key"><span class="mono">key</span> - key event</a></li>
+<li><a href="#wl_keyboard-event-modifiers"><span class="mono">modifiers</span> - modifier and group state</a></li>
+</ul>
+</div>
+<div>
+	Enums:
+	<ul>
+<li><a href="#wl_keyboard-enum-keymap_format"><span class="mono">keymap_format</span> - keyboard mapping format</a></li>
+<li><a href="#wl_keyboard-enum-key_state"><span class="mono">key_state</span> - physical key state</a></li>
+</ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_touch"><span class="mono">wl_touch</span> - touch screen input device</a><div>
+	Events:
+	<ul>
+<li><a href="#wl_touch-event-down"><span class="mono">down</span></a></li>
+<li><a href="#wl_touch-event-up"><span class="mono">up</span></a></li>
+<li><a href="#wl_touch-event-motion"><span class="mono">motion</span></a></li>
+<li><a href="#wl_touch-event-frame"><span class="mono">frame</span> - end of touch frame event</a></li>
+<li><a href="#wl_touch-event-cancel"><span class="mono">cancel</span> - touch session cancelled</a></li>
+</ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_output"><span class="mono">wl_output</span> - compositor output region</a><div>
+	Events:
+	<ul>
+<li><a href="#wl_output-event-geometry"><span class="mono">geometry</span> - properties of the output</a></li>
+<li><a href="#wl_output-event-mode"><span class="mono">mode</span> - advertise available modes for the output</a></li>
+</ul>
+</div>
+<div>
+	Enums:
+	<ul>
+<li><a href="#wl_output-enum-subpixel"><span class="mono">subpixel</span></a></li>
+<li><a href="#wl_output-enum-transform"><span class="mono">transform</span> - transform from framebuffer to output</a></li>
+<li><a href="#wl_output-enum-mode"><span class="mono">mode</span> - values for the flags bitfield in the mode event</a></li>
+</ul>
+</div>
+</li>
+<li>
+<a href="#wayland-interface-wl_region"><span class="mono">wl_region</span> - region interface</a><div>
+	Requests:
+	<ul>
+<li><a href="#wl_region-request-destroy"><span class="mono">destroy</span> - destroy region</a></li>
+<li><a href="#wl_region-request-add"><span class="mono">add</span> - add rectangle to region</a></li>
+<li><a href="#wl_region-request-subtract"><span class="mono">subtract</span> - subtract rectangle from region</a></li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_display"></a><h1>
+<span class="mono">wl_display</span>
+	- core global object</h1>
+<p class="version">Version: 1</p>
+<p>
+      The core global object.  This is a special singleton object.  It
+      is used for internal wayland protocol features.
+    </p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_display-request-bind"></a><h3>
+<span class="mono">wl_display::bind</span>
+	- bind an object to the display</h3>
+<p>
+	Binds a new, client-created object to the server using @name as
+	the identifier.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">name</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc">unique number id for object</td>
+</tr>
+<tr>
+<td class="arg_name">interface</td>
+<td class="arg_type">string</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">version</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">id</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_display-request-sync"></a><h3>
+<span class="mono">wl_display::sync</span>
+	- asynchronous roundtrip</h3>
+<p>
+	The sync request asks the server to invoke the 'done' request
+	on the provided wl_callback object.  Since requests are
+	handled in-order, this can be used as a barrier to ensure all
+	previous requests have been handled.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">callback</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_display-event-error"></a><h3>
+<span class="mono">wl_display::error</span>
+	- fatal error event</h3>
+<p>
+	The error event is sent out when a fatal (non-recoverable)
+	error has occurred.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">object_id</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">code</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">message</td>
+<td class="arg_type">string</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_display-event-global"></a><h3>
+<span class="mono">wl_display::global</span>
+	- announce global object</h3>
+<p>
+	Notify the client of global objects.  These are objects that
+	are created by the server.  Globals are published on the
+	initial client connection sequence, upon device hotplugs,
+	device disconnects, reconfiguration or other events.  A client
+	can 'bind' to a global object by using the bind request.  This
+	creates a client side handle that lets the object emit events
+	to the client and lets the client invoke requests on the
+	object.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">name</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">interface</td>
+<td class="arg_type">string</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">version</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_display-event-global_remove"></a><h3>
+<span class="mono">wl_display::global_remove</span>
+	- announce removal of global object</h3>
+<p>
+	Notify the client of removed global objects.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">name</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_display-event-delete_id"></a><h3>
+<span class="mono">wl_display::delete_id</span>
+	- acknowledge object id deletion</h3>
+<p>
+	Server has deleted the id and client can now reuse it.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">id</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+<div class="enums">
+<h2>Enums</h2>
+<div>
+<a name="wl_display-enum-error"></a><h3>
+<span class="mono">wl_display::error</span>
+	- global error values</h3>
+<p>
+	These errors are global and can be emitted in response to any
+	server request.
+      </p>
+      Values:
+      <table>
+<tr>
+<td class="arg_name">invalid_object</td>
+<td class="arg_value">0</td>
+<td class="arg_desc">server couldn't find object</td>
+</tr>
+<tr>
+<td class="arg_name">invalid_method</td>
+<td class="arg_value">1</td>
+<td class="arg_desc">method doesn't exist on the specified interface</td>
+</tr>
+<tr>
+<td class="arg_name">no_memory</td>
+<td class="arg_value">2</td>
+<td class="arg_desc">server is out of memory</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_callback"></a><h1><span class="mono">wl_callback</span></h1>
+<p class="version">Version: 1</p>
+<p></p>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_callback-event-done"></a><h3><span class="mono">wl_callback::done</span></h3>
+<p></p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_compositor"></a><h1>
+<span class="mono">wl_compositor</span>
+	- the compositor singleton</h1>
+<p class="version">Version: 1</p>
+<p>
+      A compositor.  This object is a singleton global.  The
+      compositor is in charge of combining the contents of multiple
+      surfaces into one displayable output.
+    </p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_compositor-request-create_surface"></a><h3>
+<span class="mono">wl_compositor::create_surface</span>
+	- create new surface</h3>
+<p>
+	Ask the compositor to create a new surface.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">id</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_compositor-request-create_region"></a><h3>
+<span class="mono">wl_compositor::create_region</span>
+	- create new region</h3>
+<p>
+	Ask the compositor to create a new region.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">id</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_shm_pool"></a><h1>
+<span class="mono">wl_shm_pool</span>
+	- a shared memory pool</h1>
+<p class="version">Version: 1</p>
+<p>
+      The wl_shm_pool object encapsulates a piece of memory shared
+      between the compsitor and client.  Through the wl_shm_pool
+      object, the client can allocate shared memory wl_buffer objects.
+      The objects will share the same underlying mapped memory.
+      Reusing the mapped memory avoids the setup/teardown overhead and
+      is useful when interactively resizing a surface or for many
+      small buffers.
+    </p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_shm_pool-request-create_buffer"></a><h3>
+<span class="mono">wl_shm_pool::create_buffer</span>
+	- create wl_buffer from pool</h3>
+<p>
+	Create a wl_buffer from the pool.  The buffer is created a
+	offset bytes into the pool and has width and height as
+	specified.  The stride arguments specifies the number of bytes
+	from beginning of one row to the beginning of the next.  The
+	format is the pixel format of the buffer and must be one of
+	those advertised through the wl_shm.format event.
+
+	A buffer will keep a reference to the pool it was created from
+	so it is valid to destroy the pool immediatedly after creating
+	a buffer from it.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">id</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">offset</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">width</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">height</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">stride</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">format</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_shm_pool-request-destroy"></a><h3>
+<span class="mono">wl_shm_pool::destroy</span>
+	- destroy the pool</h3>
+<p>
+	Destroy the pool.
+      </p>
+</div>
+<div>
+<a name="wl_shm_pool-request-resize"></a><h3>
+<span class="mono">wl_shm_pool::resize</span>
+	- change the size of the pool mapping</h3>
+<p>
+	This request will cause the server to remap the backing memory
+	for the pool from the fd passed when the pool was creating but
+	using the new size.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">size</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_shm"></a><h1>
+<span class="mono">wl_shm</span>
+	- shared memory support</h1>
+<p class="version">Version: 1</p>
+<p>
+      Support for shared memory buffers.
+    </p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_shm-request-create_pool"></a><h3>
+<span class="mono">wl_shm::create_pool</span>
+	- create a shm pool</h3>
+<p>
+	This creates wl_shm_pool object, which can be used to create
+	shared memory based wl_buffer objects.  The server will mmap
+	size bytes of the passed fd, to use as backing memory for then
+	pool.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">id</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">fd</td>
+<td class="arg_type">fd</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">size</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+</div>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_shm-event-format"></a><h3><span class="mono">wl_shm::format</span></h3>
+<p></p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">format</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+<div class="enums">
+<h2>Enums</h2>
+<div>
+<a name="wl_shm-enum-error"></a><h3><span class="mono">wl_shm::error</span></h3>
+<p></p>
+      Values:
+      <table>
+<tr>
+<td class="arg_name">invalid_format</td>
+<td class="arg_value">0</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">invalid_stride</td>
+<td class="arg_value">1</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">invalid_fd</td>
+<td class="arg_value">2</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_shm-enum-format"></a><h3><span class="mono">wl_shm::format</span></h3>
+<p></p>
+      Values:
+      <table>
+<tr>
+<td class="arg_name">argb8888</td>
+<td class="arg_value">0</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">xrgb8888</td>
+<td class="arg_value">1</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_buffer"></a><h1>
+<span class="mono">wl_buffer</span>
+	- content for a wl_surface</h1>
+<p class="version">Version: 1</p>
+<p>
+      A buffer provides the content for a wl_surface.  Buffers are
+      created through factory interfaces such as wl_drm, wl_shm or
+      similar.  It has a width and a height and can be attached to a
+      wl_surface, but the mechanism by which a client provides and
+      updates the contents is defined by the buffer factory interface
+    </p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_buffer-request-destroy"></a><h3>
+<span class="mono">wl_buffer::destroy</span>
+	- destroy a buffer</h3>
+<p>
+	Destroy a buffer.  This will invalidate the object id.
+      </p>
+</div>
+</div>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_buffer-event-release"></a><h3>
+<span class="mono">wl_buffer::release</span>
+	- compositor releases buffer</h3>
+<p>
+	Sent when an attached buffer is no longer used by the compositor.
+      </p>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_data_offer"></a><h1><span class="mono">wl_data_offer</span></h1>
+<p class="version">Version: 1</p>
+<p></p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_data_offer-request-accept"></a><h3>
+<span class="mono">wl_data_offer::accept</span>
+	- accept one of the offered mime-types</h3>
+<p>
+	Indicate that the client can accept the given mime-type, or
+	NULL for not accepted.  Use for feedback during drag and drop.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">type</td>
+<td class="arg_type">string</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_data_offer-request-receive"></a><h3><span class="mono">wl_data_offer::receive</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">mime_type</td>
+<td class="arg_type">string</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">fd</td>
+<td class="arg_type">fd</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_data_offer-request-destroy"></a><h3><span class="mono">wl_data_offer::destroy</span></h3>
+<p></p>
+</div>
+</div>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_data_offer-event-offer"></a><h3>
+<span class="mono">wl_data_offer::offer</span>
+	- advertise offered mime-type</h3>
+<p>
+	Sent immediately after creating the wl_data_offer object.  One
+	event per offered mime type.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">type</td>
+<td class="arg_type">string</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_data_source"></a><h1><span class="mono">wl_data_source</span></h1>
+<p class="version">Version: 1</p>
+<p></p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_data_source-request-offer"></a><h3>
+<span class="mono">wl_data_source::offer</span>
+	- add an offered mime type</h3>
+<p>
+	This request adds a mime-type to the set of mime-types
+	advertised to targets.  Can be called several times to offer
+	multiple types.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">type</td>
+<td class="arg_type">string</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_data_source-request-destroy"></a><h3>
+<span class="mono">wl_data_source::destroy</span>
+	- destroy the data source</h3>
+<p>
+	Destroy the data source.
+      </p>
+</div>
+</div>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_data_source-event-target"></a><h3>
+<span class="mono">wl_data_source::target</span>
+	- a target accepts an offered mime-type</h3>
+<p>
+	Sent when a target accepts pointer_focus or motion events.  If
+	a target does not accept any of the offered types, type is NULL.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">mime_type</td>
+<td class="arg_type">string</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_data_source-event-send"></a><h3>
+<span class="mono">wl_data_source::send</span>
+	- send the data</h3>
+<p>
+	Request for data from another client.  Send the data as the
+	specified mime-type over the passed fd, then close the fd.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">mime_type</td>
+<td class="arg_type">string</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">fd</td>
+<td class="arg_type">fd</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_data_source-event-cancelled"></a><h3>
+<span class="mono">wl_data_source::cancelled</span>
+	- selection was cancelled</h3>
+<p>
+	Another selection became active.
+      </p>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_data_device"></a><h1><span class="mono">wl_data_device</span></h1>
+<p class="version">Version: 1</p>
+<p></p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_data_device-request-start_drag"></a><h3>
+<span class="mono">wl_data_device::start_drag</span>
+	- start drag and drop operation</h3>
+<p>
+	This request asks the compositor to start a drag and drop
+	operation on behalf of the client.
+
+	The source argument is the data source that provides the data
+	for the eventual data transfer. If source is NULL, enter, leave
+	and motion events are sent only to the client that initiated the
+	drag and the client is expected to handle the data passing
+	internally.
+
+	The origin surface is the surface where the drag originates and
+	the client must have an active implicit grab that matches the
+	serial.
+
+	The icon surface is an optional (can be nil) surface that
+	provides an icon to be moved around with the cursor.  Initially,
+	the top-left corner of the icon surface is placed at the cursor
+	hotspot, but subsequent surface.attach request can move the
+	relative position.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">source</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">origin</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">icon</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_data_device-request-set_selection"></a><h3><span class="mono">wl_data_device::set_selection</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">source</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+</div>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_data_device-event-data_offer"></a><h3>
+<span class="mono">wl_data_device::data_offer</span>
+	- introduce a new wl_data_offer</h3>
+<p>
+	The data_offer event introduces a new wl_data_offer object,
+	which will subsequently be used in either the
+	data_device.enter event (for drag and drop) or the
+	data_device.selection event (for selections).  Immediately
+	following the data_device_data_offer event, the new data_offer
+	object will send out data_offer.offer events to describe the
+	mime-types it offers.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">id</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_data_device-event-enter"></a><h3><span class="mono">wl_data_device::enter</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">surface</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">x</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">y</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">id</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_data_device-event-leave"></a><h3><span class="mono">wl_data_device::leave</span></h3>
+<p></p>
+</div>
+<div>
+<a name="wl_data_device-event-motion"></a><h3><span class="mono">wl_data_device::motion</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">time</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">x</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">y</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_data_device-event-drop"></a><h3><span class="mono">wl_data_device::drop</span></h3>
+<p></p>
+</div>
+<div>
+<a name="wl_data_device-event-selection"></a><h3>
+<span class="mono">wl_data_device::selection</span>
+	- advertise new selection</h3>
+<p>
+	The selection event is sent out to notify the client of a new
+	wl_data_offer for the selection for this device.  The
+	data_device.data_offer and the data_offer.offer events are
+	sent out immediately before this event to introduce the data
+	offer object.  The selection event is sent to a client
+	immediately before receiving keyboard focus and when a new
+	selection is set while the client has keyboard focus.  The
+	data_offer is valid until a new data_offer or NULL is received
+	or until the client loses keyboard focus.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">id</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_data_device_manager"></a><h1><span class="mono">wl_data_device_manager</span></h1>
+<p class="version">Version: 1</p>
+<p></p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_data_device_manager-request-create_data_source"></a><h3><span class="mono">wl_data_device_manager::create_data_source</span></h3>
+<p></p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">id</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_data_device_manager-request-get_data_device"></a><h3><span class="mono">wl_data_device_manager::get_data_device</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">id</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">seat</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_shell"></a><h1><span class="mono">wl_shell</span></h1>
+<p class="version">Version: 1</p>
+<p></p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_shell-request-get_shell_surface"></a><h3><span class="mono">wl_shell::get_shell_surface</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">id</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">surface</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_shell_surface"></a><h1>
+<span class="mono">wl_shell_surface</span>
+	- desktop style meta data interface</h1>
+<p class="version">Version: 1</p>
+<p>
+      An interface implemented by a wl_surface.  On server side the
+      object is automatically destroyed when the related wl_surface is
+      destroyed.  On client side, wl_shell_surface_destroy() must be
+      called before destroying the wl_surface object.
+    </p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_shell_surface-request-pong"></a><h3>
+<span class="mono">wl_shell_surface::pong</span>
+	- respond to a ping event</h3>
+<p>
+	A client must respond to a ping event with a pong request or
+	the client may be deemed unresponsive.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_shell_surface-request-move"></a><h3><span class="mono">wl_shell_surface::move</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">seat</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_shell_surface-request-resize"></a><h3><span class="mono">wl_shell_surface::resize</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">seat</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">edges</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_shell_surface-request-set_toplevel"></a><h3>
+<span class="mono">wl_shell_surface::set_toplevel</span>
+	- make the surface a top level surface</h3>
+<p>
+	Make the surface a toplevel window.
+      </p>
+</div>
+<div>
+<a name="wl_shell_surface-request-set_transient"></a><h3>
+<span class="mono">wl_shell_surface::set_transient</span>
+	- make the surface a transient surface</h3>
+<p>
+	Map the surface relative to an existing surface. The x and y
+	arguments specify the locations of the upper left corner of
+	the surface relative to the upper left corner of the parent
+	surface.  The flags argument controls overflow/clipping
+	behaviour when the surface would intersect a screen edge,
+	panel or such.  And possibly whether the offset only
+	determines the initial position or if the surface is locked to
+	that relative position during moves.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">parent</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">x</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">y</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">flags</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_shell_surface-request-set_fullscreen"></a><h3>
+<span class="mono">wl_shell_surface::set_fullscreen</span>
+	- make the surface a fullscreen surface</h3>
+<p>
+        Map the surface as a fullscreen surface. If an output parameter is
+        given then the surface will be made fullscreen on that output. If the
+        client does not specify the output then the compositor will apply its
+        policy - usually choosing the output on which the surface has the
+        biggest surface area.
+
+        The client may specify a method to resolve a size conflict between the
+        output size and the surface size - this is provided through the
+        fullscreen_method parameter.
+
+        The framerate parameter is used only when the fullscreen_method is set
+        to "driver", to indicate the preferred framerate. framerate=0 indicates
+        that the app does not care about framerate.  The framerate is
+        specified in mHz, that is framerate of 60000 is 60Hz.
+
+        The compositor must reply to this request with a configure event with
+        the dimensions for the output on which the surface will be made fullscreen.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">method</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">framerate</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">output</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_shell_surface-request-set_popup"></a><h3>
+<span class="mono">wl_shell_surface::set_popup</span>
+	- make the surface a popup surface</h3>
+<p>
+	Popup surfaces.  Will switch an implicit grab into
+	owner-events mode, and grab will continue after the implicit
+	grab ends (button released).  Once the implicit grab is over,
+	the popup grab continues until the window is destroyed or a
+	mouse button is pressed in any other clients window.  A click
+	in any of the clients surfaces is reported as normal, however,
+	clicks in other clients surfaces will be discarded and trigger
+	the callback.
+
+	TODO: Grab keyboard too, maybe just terminate on any click
+	inside or outside the surface?
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">seat</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">parent</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">x</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">y</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">flags</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_shell_surface-request-set_maximized"></a><h3>
+<span class="mono">wl_shell_surface::set_maximized</span>
+	- make the surface a maximized surface</h3>
+<p>
+	A request from the client to notify the compositor the maximized
+	operation. The compositor will reply with a configure event telling
+        the expected new surface size. The operation is completed on the
+        next buffer attach to this surface.
+        A maximized client will fill the fullscreen of the output it is bound
+        to, except the panel area. This is the main difference between
+        a maximized shell surface and a fullscreen shell surface.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">output</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_shell_surface-request-set_title"></a><h3>
+<span class="mono">wl_shell_surface::set_title</span>
+	- set surface title</h3>
+<p>
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">title</td>
+<td class="arg_type">string</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_shell_surface-request-set_class"></a><h3>
+<span class="mono">wl_shell_surface::set_class</span>
+	- set surface class</h3>
+<p>
+	The surface class identifies the general class of applications
+	to which the surface belongs.  The class is the file name of
+	the applications .desktop file (absolute path if non-standard
+	location). 
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">class_</td>
+<td class="arg_type">string</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_shell_surface-event-ping"></a><h3>
+<span class="mono">wl_shell_surface::ping</span>
+	- ping client</h3>
+<p>
+	Ping a client to check if it is receiving events and sending
+	requests. A client is expected to reply with a pong request.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_shell_surface-event-configure"></a><h3>
+<span class="mono">wl_shell_surface::configure</span>
+	- suggest resize</h3>
+<p>
+	The configure event asks the client to resize its surface.
+	The size is a hint, in the sense that the client is free to
+	ignore it if it doesn't resize, pick a smaller size (to
+	satisfy aspect ration or resize in steps of NxM pixels).  The
+	client is free to dismiss all but the last configure event it
+	received.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">edges</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">width</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">height</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_shell_surface-event-popup_done"></a><h3>
+<span class="mono">wl_shell_surface::popup_done</span>
+	- popup interaction is done</h3>
+<p>
+	The popup_done event is sent out when a popup grab is broken,
+	that is, when the users clicks a surface that doesn't belong
+	to the client owning the popup surface.
+      </p>
+</div>
+</div>
+<div class="enums">
+<h2>Enums</h2>
+<div>
+<a name="wl_shell_surface-enum-resize"></a><h3><span class="mono">wl_shell_surface::resize</span></h3>
+<p></p>
+      Values:
+      <table>
+<tr>
+<td class="arg_name">none</td>
+<td class="arg_value">0</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">top</td>
+<td class="arg_value">1</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">bottom</td>
+<td class="arg_value">2</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">left</td>
+<td class="arg_value">4</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">top_left</td>
+<td class="arg_value">5</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">bottom_left</td>
+<td class="arg_value">6</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">right</td>
+<td class="arg_value">8</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">top_right</td>
+<td class="arg_value">9</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">bottom_right</td>
+<td class="arg_value">10</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_shell_surface-enum-transient"></a><h3><span class="mono">wl_shell_surface::transient</span></h3>
+<p></p>
+      Values:
+      <table><tr>
+<td class="arg_name">inactive</td>
+<td class="arg_value">0x1</td>
+<td class="arg_desc">do not set keyboard focus</td>
+</tr></table>
+</div>
+<div>
+<a name="wl_shell_surface-enum-fullscreen_method"></a><h3>
+<span class="mono">wl_shell_surface::fullscreen_method</span>
+	- different method to set the surface fullscreen</h3>
+<p>
+        Hints to indicate compositor how to deal with a conflict between the
+        dimensions for the surface and the dimensions of the output. As a hint
+        the compositor is free to ignore this parameter.
+
+        "default" The client has no preference on fullscreen behavior,
+        policies are determined by compositor.
+
+        "scale" The client prefers scaling by the compositor. Scaling would
+        always preserve surface's aspect ratio with surface centered on the
+        output
+
+        "driver" The client wants to switch video mode to the smallest mode
+        that can fit the client buffer. If the sizes do not match the
+        compositor must add black borders.
+
+        "fill" The surface is centered on the output on the screen with no
+        scaling. If the surface is of insufficient size the compositor must
+        add black borders.
+      </p>
+      Values:
+      <table>
+<tr>
+<td class="arg_name">default</td>
+<td class="arg_value">0</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">scale</td>
+<td class="arg_value">1</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">driver</td>
+<td class="arg_value">2</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">fill</td>
+<td class="arg_value">3</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_surface"></a><h1>
+<span class="mono">wl_surface</span>
+	- an onscreen surface</h1>
+<p class="version">Version: 1</p>
+<p>
+      A surface.  This is an image that is displayed on the screen.
+      It has a location, size and pixel contents.
+    </p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_surface-request-destroy"></a><h3>
+<span class="mono">wl_surface::destroy</span>
+	- delete surface</h3>
+<p>
+	Deletes the surface and invalidates its object id.
+      </p>
+</div>
+<div>
+<a name="wl_surface-request-attach"></a><h3>
+<span class="mono">wl_surface::attach</span>
+	- set the surface contents</h3>
+<p>
+	Copy the contents of a buffer into this surface. The x and y
+	arguments specify the location of the new buffers upper left
+	corner, relative to the old buffers upper left corner.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">buffer</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">x</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">y</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_surface-request-damage"></a><h3>
+<span class="mono">wl_surface::damage</span>
+	- mark part of the surface damaged</h3>
+<p>
+	After attaching a new buffer, this request is used to describe
+	the regions where the new buffer is different from the
+	previous buffer and needs to be repainted.  Coordinates are
+	relative to the new buffer.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">x</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">y</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">width</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">height</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_surface-request-frame"></a><h3>
+<span class="mono">wl_surface::frame</span>
+	- request repaint feedback</h3>
+<p>
+	Request notification when the next frame is displayed.  Useful
+	for throttling redrawing operations, and driving animations.
+	The notification will only be posted for one frame unless
+	requested again.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">callback</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_surface-request-set_opaque_region"></a><h3>
+<span class="mono">wl_surface::set_opaque_region</span>
+	- set opaque region</h3>
+<p>
+	This requests sets the region of the surface that contain
+	opaque content.  The opaque region is an optimization hint for
+	the compositor that lets it optimize out redrawing of content
+	behind opaque regions.  Setting an opaque region is not
+	required for correct behaviour, but marking transparent
+	content as opaque will result in repaint artifacts.
+
+	The region will be clipped to the extents of the current
+	surface size.  Setting the region has copy semantics, and the
+	region object can be destroyed immediately after setting the
+	opaque region.  If a buffer of a different size is attached or
+	if a nil region is set, the opaque region will revert back to
+	default.  The default opaque region is empty.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">region</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_surface-request-set_input_region"></a><h3>
+<span class="mono">wl_surface::set_input_region</span>
+	- set input region</h3>
+<p>
+	This requests sets the region of the surface that can receive
+	pointer and touch events.  The region will be clipped to the
+	extents of the current surface size.  Setting the region has
+	copy semantics, and the region object can be destroyed
+	immediately after setting the input region.  If a buffer of a
+	different size is attached or if a nil region is passed, the
+	input region will revert back to default.  The default input
+	region is the entire surface.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">region</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_surface-event-enter"></a><h3>
+<span class="mono">wl_surface::enter</span>
+	- surface enters an output</h3>
+<p>
+        This is emitted whenever a surface's creation, movement, or resizing
+        results in some part of it being within the scanout region of an
+        output.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">output</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_surface-event-leave"></a><h3>
+<span class="mono">wl_surface::leave</span>
+	- surface leaves an output</h3>
+<p>
+        This is emitted whenever a surface's creation, movement, or resizing
+        results in it no longer having any part of it within the scanout region
+        of an output.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">output</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_seat"></a><h1>
+<span class="mono">wl_seat</span>
+	- seat</h1>
+<p class="version">Version: 1</p>
+<p>
+      A group of keyboards, pointer (mice, for example) and touch
+      devices . This object is published as a global during start up,
+      or when such a device is hot plugged.  A seat typically has a
+      pointer and maintains a keyboard_focus and a pointer_focus.
+    </p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_seat-request-get_pointer"></a><h3>
+<span class="mono">wl_seat::get_pointer</span>
+	- return pointer object</h3>
+<p>
+        The ID provided will be initialized to the wl_pointer interface
+	for this seat.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">id</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_seat-request-get_keyboard"></a><h3>
+<span class="mono">wl_seat::get_keyboard</span>
+	- return pointer object</h3>
+<p>
+        The ID provided will be initialized to the wl_keyboard interface
+	for this seat.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">id</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_seat-request-get_touch"></a><h3>
+<span class="mono">wl_seat::get_touch</span>
+	- return pointer object</h3>
+<p>
+        The ID provided will be initialized to the wl_touch interface
+	for this seat.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">id</td>
+<td class="arg_type">new_id</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_seat-event-capabilities"></a><h3>
+<span class="mono">wl_seat::capabilities</span>
+	- seat capabilities changed</h3>
+<p>
+        This is emitted whenever a seat gains or loses the pointer,
+	keyboard or touch capabilities.  The argument is a wl_seat_caps_mask
+	enum containing the complete set of capabilities this seat has.
+      </p>
+      Arguments:
+      <table><tr>
+<td class="arg_name">capabilities</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+</div>
+<div class="enums">
+<h2>Enums</h2>
+<div>
+<a name="wl_seat-enum-capability"></a><h3>
+<span class="mono">wl_seat::capability</span>
+	- seat capability bitmask</h3>
+<p>
+        This is a bitmask of capabilities this seat has; if a member is
+	set, then it is present on the seat.
+      </p>
+      Values:
+      <table>
+<tr>
+<td class="arg_name">pointer</td>
+<td class="arg_value">1</td>
+<td class="arg_desc">wl_pointer</td>
+</tr>
+<tr>
+<td class="arg_name">keyboard</td>
+<td class="arg_value">2</td>
+<td class="arg_desc">wl_keyboard</td>
+</tr>
+<tr>
+<td class="arg_name">touch</td>
+<td class="arg_value">4</td>
+<td class="arg_desc">wl_touch</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_pointer"></a><h1><span class="mono">wl_pointer</span></h1>
+<p class="version">Version: 1</p>
+<p></p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_pointer-request-set_cursor"></a><h3>
+<span class="mono">wl_pointer::set_cursor</span>
+	- set the pointer surface</h3>
+<p>
+	Set the pointer surface, i.e., the surface that contains the
+	pointer image. This request only takes effect if the pointer
+	focus for this device is one of the requesting client surfaces
+	or the surface parameter is the current pointer surface. If
+	there was a previous surface set with this request it is
+	replaced. If surface is NULL, the pointer image is hidden.
+
+	The parameters hotspot_x and hotspot_y define the position of
+	the pointer surface relative to the pointer location. Its
+	top-left corner is always at (x, y) - (hotspot_x, hotspot_y),
+	where (x, y) are the coordinates of the pointer location.
+
+	On surface.attach requests to the pointer surface, hotspot_x
+	and hotspot_y are decremented by the x and y parameters
+	passed to the request.
+
+	The hotspot can also be updated by passing the current set
+	pointer surface to this request with new values for hotspot_x
+	and/or hotspot_y.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">surface</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">hotspot_x</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">hotspot_y</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+</div>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_pointer-event-enter"></a><h3>
+<span class="mono">wl_pointer::enter</span>
+	- enter event</h3>
+<p>
+	Notification that this seat's pointer is focused on a certain
+	surface. When an seat's focus enters a surface, the pointer image
+	is undefined and a client should respond to this event by setting
+	an appropriate pointer image.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">surface</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">surface_x</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">surface_y</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_pointer-event-leave"></a><h3>
+<span class="mono">wl_pointer::leave</span>
+	- leave event</h3>
+<p>
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">surface</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_pointer-event-motion"></a><h3>
+<span class="mono">wl_pointer::motion</span>
+	- pointer motion event</h3>
+<p>
+	Notification of pointer location change. The arguments surface_[xy]
+	are the location relative to the focused surface.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">time</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">surface_x</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">surface_y</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_pointer-event-button"></a><h3>
+<span class="mono">wl_pointer::button</span>
+	- pointer button event</h3>
+<p>
+	Mouse button click and release notifications.  The location
+	of the click is given by the last motion or pointer_focus event.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">time</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">button</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">state</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_pointer-event-axis"></a><h3>
+<span class="mono">wl_pointer::axis</span>
+	- axis event</h3>
+<p>
+	Scroll and other axis notifications.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">time</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">axis</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">value</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+</div>
+<div class="enums">
+<h2>Enums</h2>
+<div>
+<a name="wl_pointer-enum-button_state"></a><h3>
+<span class="mono">wl_pointer::button_state</span>
+	- physical button state</h3>
+<p>
+        Describes the physical state of a button which provoked the button
+	event.
+      </p>
+      Values:
+      <table>
+<tr>
+<td class="arg_name">released</td>
+<td class="arg_value">0</td>
+<td class="arg_desc">button is not pressed</td>
+</tr>
+<tr>
+<td class="arg_name">pressed</td>
+<td class="arg_value">1</td>
+<td class="arg_desc">button is pressed</td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_pointer-enum-axis"></a><h3>
+<span class="mono">wl_pointer::axis</span>
+	- axis types</h3>
+<p></p>
+      Values:
+      <table>
+<tr>
+<td class="arg_name">vertical_scroll</td>
+<td class="arg_value">0</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">horizontal_scroll</td>
+<td class="arg_value">1</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_keyboard"></a><h1>
+<span class="mono">wl_keyboard</span>
+	- keyboard input device</h1>
+<p class="version">Version: 1</p>
+<p>
+    </p>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_keyboard-event-keymap"></a><h3>
+<span class="mono">wl_keyboard::keymap</span>
+	- keyboard mapping</h3>
+<p>
+        This event provides a file descriptor to the client which can be
+	memory-mapped to provide a keyboard mapping description.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">format</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">fd</td>
+<td class="arg_type">fd</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">size</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_keyboard-event-enter"></a><h3><span class="mono">wl_keyboard::enter</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">surface</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">keys</td>
+<td class="arg_type">array</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_keyboard-event-leave"></a><h3><span class="mono">wl_keyboard::leave</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">surface</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_keyboard-event-key"></a><h3>
+<span class="mono">wl_keyboard::key</span>
+	- key event</h3>
+<p>
+	A key was pressed or released.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">time</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">key</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">state</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_keyboard-event-modifiers"></a><h3>
+<span class="mono">wl_keyboard::modifiers</span>
+	- modifier and group state</h3>
+<p>
+        Notifies clients that the modifier and/or group state has
+	changed, and it should update its local state.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">mods_depressed</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">mods_latched</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">mods_locked</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">group</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+</div>
+<div class="enums">
+<h2>Enums</h2>
+<div>
+<a name="wl_keyboard-enum-keymap_format"></a><h3>
+<span class="mono">wl_keyboard::keymap_format</span>
+	- keyboard mapping format</h3>
+<p>
+        This enum specifies the format of the keymap provided to the client
+	with the wl_keyboard::keymap event.
+      </p>
+      Values:
+      <table><tr>
+<td class="arg_name">xkb_v1</td>
+<td class="arg_value">1</td>
+<td class="arg_desc"></td>
+</tr></table>
+</div>
+<div>
+<a name="wl_keyboard-enum-key_state"></a><h3>
+<span class="mono">wl_keyboard::key_state</span>
+	- physical key state</h3>
+<p>
+        Describes the physical state of a key which provoked the key event.
+	When a key repeats, the sequence is down -&gt; repeat -&gt; repeat -&gt; up.
+      </p>
+      Values:
+      <table>
+<tr>
+<td class="arg_name">released</td>
+<td class="arg_value">0</td>
+<td class="arg_desc">key is not pressed</td>
+</tr>
+<tr>
+<td class="arg_name">pressed</td>
+<td class="arg_value">1</td>
+<td class="arg_desc">key is pressed</td>
+</tr>
+<tr>
+<td class="arg_name">repeat</td>
+<td class="arg_value">2</td>
+<td class="arg_desc">key is pressed and repeating</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_touch"></a><h1>
+<span class="mono">wl_touch</span>
+	- touch screen input device</h1>
+<p class="version">Version: 1</p>
+<p>
+    </p>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_touch-event-down"></a><h3><span class="mono">wl_touch::down</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">time</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">surface</td>
+<td class="arg_type">object</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">id</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">x</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">y</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_touch-event-up"></a><h3><span class="mono">wl_touch::up</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">serial</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">time</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">id</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_touch-event-motion"></a><h3><span class="mono">wl_touch::motion</span></h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">time</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">id</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">x</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">y</td>
+<td class="arg_type">fixed</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_touch-event-frame"></a><h3>
+<span class="mono">wl_touch::frame</span>
+	- end of touch frame event</h3>
+<p>
+	Indicates the end of a contact point list.
+      </p>
+</div>
+<div>
+<a name="wl_touch-event-cancel"></a><h3>
+<span class="mono">wl_touch::cancel</span>
+	- touch session cancelled</h3>
+<p>
+	Sent if the compositor decides the touch stream is a global
+	gesture. No further events are sent to the clients from that
+	particular gesture.
+      </p>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_output"></a><h1>
+<span class="mono">wl_output</span>
+	- compositor output region</h1>
+<p class="version">Version: 1</p>
+<p>
+      An output describes part of the compositor geometry.  The
+      compositor work in the 'compositor coordinate system' and an
+      output corresponds to rectangular area in that space that is
+      actually visible.  This typically corresponds to a monitor that
+      displays part of the compositor space.  This object is published
+      as global during start up, or when a screen is hot plugged.
+    </p>
+<div class="events">
+<h2>Events</h2>
+<div>
+<a name="wl_output-event-geometry"></a><h3>
+<span class="mono">wl_output::geometry</span>
+	- properties of the output</h3>
+<p></p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">x</td>
+<td class="arg_type">int</td>
+<td class="arg_desc">x position within the global compositor space</td>
+</tr>
+<tr>
+<td class="arg_name">y</td>
+<td class="arg_type">int</td>
+<td class="arg_desc">y position within the global compositor space</td>
+</tr>
+<tr>
+<td class="arg_name">physical_width</td>
+<td class="arg_type">int</td>
+<td class="arg_desc">width in millimeters of the output</td>
+</tr>
+<tr>
+<td class="arg_name">physical_height</td>
+<td class="arg_type">int</td>
+<td class="arg_desc">height in millimeters of the output</td>
+</tr>
+<tr>
+<td class="arg_name">subpixel</td>
+<td class="arg_type">int</td>
+<td class="arg_desc">subpixel orientation of the output</td>
+</tr>
+<tr>
+<td class="arg_name">make</td>
+<td class="arg_type">string</td>
+<td class="arg_desc">textual description of the manufacturer</td>
+</tr>
+<tr>
+<td class="arg_name">model</td>
+<td class="arg_type">string</td>
+<td class="arg_desc">textual description of the model</td>
+</tr>
+<tr>
+<td class="arg_name">transform</td>
+<td class="arg_type">int</td>
+<td class="arg_desc">transform that maps framebuffer to output</td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_output-event-mode"></a><h3>
+<span class="mono">wl_output::mode</span>
+	- advertise available modes for the output</h3>
+<p>
+	The mode event describes an available mode for the output.
+	The event is sent when binding to the output object and there
+	will always be one mode, the current mode.  The event is sent
+	again if an output changes mode, for the mode that is now
+	current.  In other words, the current mode is always the last
+	mode that was received with the current flag set.
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">flags</td>
+<td class="arg_type">uint</td>
+<td class="arg_desc">mask of wl_output_mode flags</td>
+</tr>
+<tr>
+<td class="arg_name">width</td>
+<td class="arg_type">int</td>
+<td class="arg_desc">width of the mode in pixels</td>
+</tr>
+<tr>
+<td class="arg_name">height</td>
+<td class="arg_type">int</td>
+<td class="arg_desc">height of the mode in pixels</td>
+</tr>
+<tr>
+<td class="arg_name">refresh</td>
+<td class="arg_type">int</td>
+<td class="arg_desc">vertical refresh rate in mHz</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="enums">
+<h2>Enums</h2>
+<div>
+<a name="wl_output-enum-subpixel"></a><h3><span class="mono">wl_output::subpixel</span></h3>
+<p></p>
+      Values:
+      <table>
+<tr>
+<td class="arg_name">unknown</td>
+<td class="arg_value">0</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">none</td>
+<td class="arg_value">1</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">horizontal_rgb</td>
+<td class="arg_value">2</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">horizontal_bgr</td>
+<td class="arg_value">3</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">vertical_rgb</td>
+<td class="arg_value">4</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">vertical_bgr</td>
+<td class="arg_value">5</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_output-enum-transform"></a><h3>
+<span class="mono">wl_output::transform</span>
+	- transform from framebuffer to output</h3>
+<p>
+	This describes the transform that a compositor will apply to a
+	surface to compensate for the rotation or mirroring of an
+	output device.
+
+	The flipped values correspond to an initial flip around a
+	vertical axis followed by rotaion.
+
+	The purpose is mainly to allow clients render accordingly and
+	tell the compositor, so that for fullscreen surfaces, the
+	compositor will still be able to scan out directly from client
+	surfaces.
+      </p>
+      Values:
+      <table>
+<tr>
+<td class="arg_name">normal</td>
+<td class="arg_value">0</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">90</td>
+<td class="arg_value">1</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">180</td>
+<td class="arg_value">2</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">270</td>
+<td class="arg_value">3</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">flipped</td>
+<td class="arg_value">4</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">flipped_90</td>
+<td class="arg_value">5</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">flipped_180</td>
+<td class="arg_value">6</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">flipped_270</td>
+<td class="arg_value">7</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_output-enum-mode"></a><h3>
+<span class="mono">wl_output::mode</span>
+	- values for the flags bitfield in the mode event</h3>
+<p></p>
+      Values:
+      <table>
+<tr>
+<td class="arg_name">current</td>
+<td class="arg_value">0x1</td>
+<td class="arg_desc">indicates this is the current mode</td>
+</tr>
+<tr>
+<td class="arg_name">preferred</td>
+<td class="arg_value">0x2</td>
+<td class="arg_desc">indicates this is the preferred mode</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="interface">
+<a name="wayland-interface-wl_region"></a><h1>
+<span class="mono">wl_region</span>
+	- region interface</h1>
+<p class="version">Version: 1</p>
+<p>
+      Region.
+    </p>
+<div class="requests">
+<h2>Requests</h2>
+<div>
+<a name="wl_region-request-destroy"></a><h3>
+<span class="mono">wl_region::destroy</span>
+	- destroy region</h3>
+<p>
+	Destroy the region.  This will invalidate the object id.
+      </p>
+</div>
+<div>
+<a name="wl_region-request-add"></a><h3>
+<span class="mono">wl_region::add</span>
+	- add rectangle to region</h3>
+<p>
+	Add the specified rectangle to the region
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">x</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">y</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">width</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">height</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+<div>
+<a name="wl_region-request-subtract"></a><h3>
+<span class="mono">wl_region::subtract</span>
+	- subtract rectangle from region</h3>
+<p>
+	Subtract the specified rectangle from the region
+      </p>
+      Arguments:
+      <table>
+<tr>
+<td class="arg_name">x</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">y</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">width</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+<tr>
+<td class="arg_name">height</td>
+<td class="arg_type">int</td>
+<td class="arg_desc"></td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</body>
+</html>
